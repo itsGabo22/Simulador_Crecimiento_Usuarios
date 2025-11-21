@@ -4,6 +4,8 @@ import streamlit as st
 from simulation_models import run_simulations
 from plotting import create_plots # type: ignore
 from analysis import generate_analysis_text
+from pdf_generator import create_pdf_report
+from datetime import datetime
 
 # --- Configuración inicial de la Página ---
 st.set_page_config(
@@ -12,7 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Título y Descripción ---
+# --- Título y Créditos ---
 st.title("Simulador de Crecimiento de Usuarios")
 st.write("""
 Esta aplicación simula y compara dos modelos de crecimiento de usuarios basados en ecuaciones diferenciales. 
@@ -66,3 +68,27 @@ st.header("Análisis e Interpretación de los Modelos")
 # 4. Generar y mostrar el análisis dinámico
 analysis_text = generate_analysis_text(simulation_results, r, K, U0, a, t_max)
 st.markdown(analysis_text, unsafe_allow_html=True)
+
+# --- Funcionalidad de Descarga de PDF ---
+st.sidebar.markdown("---")
+st.sidebar.header("Descargar Reporte")
+
+# 1. Recolectar parámetros en un diccionario
+params = {
+    "Tasa de Crecimiento (r)": r,
+    "Capacidad Máxima (K)": K,
+    "Usuarios Iniciales (U0)": U0,
+    "Fricción Social (a)": a,
+    "Tiempo de Simulación (días)": t_max
+}
+
+# 2. Generar el PDF en memoria
+pdf_bytes = create_pdf_report(params, fig, analysis_text)
+
+# 3. Crear el botón de descarga
+st.sidebar.download_button(
+    label="Descargar Reporte en PDF",
+    data=pdf_bytes,
+    file_name=f"reporte_simulacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+    mime="application/pdf"
+)
